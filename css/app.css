@@ -1,0 +1,540 @@
+/* ---------- tokens: one sheet of warm paper, ink, a single bronze accent ---------- */
+:root{--bg:#f5f1eb;--surface:#fcfbf8;--card:#fff;--soft:#f1ece4;--soft2:#e9e2d6;--line:rgba(31,27,23,.08);--line2:rgba(31,27,23,.15);
+ --ink:#1f1b17;--ink2:#5d544a;--dim:#73685b;--mute:#b4a998;--accent:#86622a;--wood:#b9773a;--gold:var(--accent);--ok:#3f7a3b;--warn:#b5512f;--sc:#ff5500;
+ --f-display:'Instrument Serif',Vazirmatn,Georgia,serif;--f-ui:Geist,Vazirmatn,system-ui,sans-serif;--f-mono:'Geist Mono',ui-monospace,Menlo,monospace;
+ --t-display:clamp(36px,10.4vw,50px);--t-h3:22px;--t-body:15px;--t-ui:13.5px;--t-cap:12.5px;--t-micro:10.5px;
+ --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--gut:22px;--r-sm:12px;--r:18px;--r-lg:28px;
+ --e1:0 1px 0 rgba(31,27,23,.04),0 1px 3px rgba(60,40,20,.06);--e2:0 1px 2px rgba(60,40,20,.05),0 12px 32px -10px rgba(60,40,20,.18);--shadow:var(--e1);
+ --ease:cubic-bezier(.2,.8,.2,1);--ease-out:cubic-bezier(.16,1,.3,1);--spring:cubic-bezier(.34,1.4,.64,1);
+ --col:min(520px,100%);--tab:64px;
+ --glass:var(--glass);--on-ink:#fff;--ink-hover:#342d26;--vig:rgba(70,48,24,.06);
+ --sat:env(safe-area-inset-top,0px);--sar:env(safe-area-inset-right,0px);--sab:env(safe-area-inset-bottom,0px);--sal:env(safe-area-inset-left,0px);}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:var(--t-body);-webkit-font-smoothing:antialiased;letter-spacing:-.005em;overscroll-behavior:none}
+/* a long-press on a label must not start Android text selection; fields stay selectable */
+html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea,select,[contenteditable],code{-webkit-user-select:text;user-select:text}
+body{min-height:100vh;min-height:100dvh}
+button,.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font:inherit;font-size:var(--t-ui);font-weight:500;color:var(--ink);background:var(--soft);
+  border:0;border-radius:999px;padding:10px 16px;cursor:pointer;transition:background .2s,transform .15s,opacity .2s;white-space:nowrap}
+button:hover:not(:disabled),.btn:hover{background:var(--soft2)}
+button:active:not(:disabled){transform:scale(.97)}
+button:disabled{opacity:.4;cursor:default}
+button.primary{background:var(--ink);color:var(--on-ink);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 8px 18px -8px rgba(31,27,23,.5)} button.primary:hover:not(:disabled){background:var(--ink-hover)}
+button.ghost{background:transparent;box-shadow:inset 0 0 0 1px var(--line2)}
+button.icon{width:44px;height:44px;padding:0;font-size:16px}
+.ico{flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+input,select,textarea{font:inherit;font-size:14px;color:var(--ink);background:var(--soft);border:1px solid transparent;border-radius:14px;padding:11px 14px;outline:none;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--line2);background:var(--card)}
+input[type=range]{accent-color:var(--ink);padding:0;background:none;border:0}
+input[type=checkbox]{width:auto;accent-color:var(--ink)}
+input[type=file]{display:none}
+textarea{direction:ltr;text-align:left;resize:vertical;font-size:var(--t-cap);line-height:1.6}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.hint{font-size:13px;color:var(--dim);line-height:1.55;margin:0;text-wrap:pretty}
+small{color:var(--dim)}
+
+/* ---------- frameless layout: the 3D scene is the page; UI floats over it ---------- */
+body{overflow-x:hidden}
+#gl{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;display:block;z-index:0;touch-action:none}
+/* stage atmosphere at no GPU cost: a static edge-only vignette, nothing veils the subject; dropped on the lowest quality rungs */
+body::before{content:'';position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(140% 95% at 50% 40%,transparent 58%,var(--vig) 100%)}
+html.lowfx body::before{display:none}
+.loading{position:fixed;inset:0;display:grid;place-content:center;justify-items:center;gap:16px;color:var(--dim);font-size:12px;z-index:60;background:var(--bg);
+  transition:opacity .7s var(--ease),visibility .7s}
+.loading.done{opacity:0;visibility:hidden;pointer-events:none}
+/* the record alone is in flow, so it sits at the exact screen centre where the Android splash icon was; the words hang below it */
+.loading .brand.big,.loading small{position:absolute;left:0;right:0;text-align:center}
+.loading .brand.big{top:calc(50% + 66px);font-size:34px}
+.loading small{top:calc(50% + 112px);padding:0 24px;line-height:1.5;font-family:var(--f-mono);letter-spacing:.06em;text-transform:uppercase;font-size:var(--t-micro)}
+/* diag.js watchdog: below the wordmark and a status line of up to three lines, on the paper colour. diag.js positions it inline
+   (top: 50% + 150px), so the clamp that keeps the Reload button on a short landscape screen has to be !important */
+.loading .err{position:absolute;left:0;right:0;top:min(calc(50% + 166px),calc(100% - 84px))!important;padding:2px 24px 6px;background:var(--bg);text-align:center;color:var(--ink2);line-height:1.4}
+.loading .err button{margin-top:12px}
+/* a tiny record turning at 33⅓ — the label turns, the light on the grooves stays put */
+.spinrec{width:92px;height:92px;border-radius:50%;position:relative;box-shadow:0 12px 30px rgba(40,25,10,.2)}
+.spinrec i{position:absolute;inset:0;border-radius:50%;animation:spin 1.8s linear infinite;
+  background:repeating-radial-gradient(circle,#151312 0 1.4px,#1d1a18 1.4px 2.6px)}
+.spinrec i::before{content:"";position:absolute;inset:34%;border-radius:50%;
+  background:radial-gradient(circle,var(--bg) 0 9%,transparent 10%),conic-gradient(#c7703a 0 68%,#efc07a 68% 80%,#c7703a 80%)}
+.spinrec::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;
+  background:conic-gradient(from 30deg,transparent 0 6%,rgba(255,255,255,.2) 11%,transparent 17% 56%,rgba(255,255,255,.14) 61%,transparent 67%);
+  -webkit-mask:radial-gradient(circle,transparent 16%,#000 16.5%);mask:radial-gradient(circle,transparent 16%,#000 16.5%)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.top{position:fixed;top:0;left:50%;transform:translateX(-50%);width:var(--col);z-index:30;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:calc(14px + var(--sat)) var(--gut) 8px;pointer-events:none}
+.top > *{pointer-events:auto}
+.brand{font-family:var(--f-display);font-size:22px;letter-spacing:-.2px;font-weight:400} .brand span{color:var(--wood);font-style:italic}
+.wallet{display:flex;align-items:baseline;gap:6px;font:500 10px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim);background:transparent;
+  box-shadow:inset 0 0 0 1px var(--line2);border-radius:999px;padding:7px 12px}
+.wallet b{font:500 12.5px var(--f-mono);letter-spacing:0;color:var(--ink)}
+/* credit only matters where money is spent */
+body:not([data-tab=shop]):not([data-tab=studio]):not([data-tab=you]) .wallet{display:none}
+.wallet.bump b{animation:bump .5s var(--spring)}
+@keyframes bump{40%{transform:translateY(-2px);color:var(--warn)}}
+/* mini now-playing capsule (A4): spinning label, title, play/pause, a progress hairline (--p). The brand and credit keep their
+   width; the capsule gives way (min-width:0 down the chain) and its title ellipsizes */
+.brand,.wallet{flex:none}
+.topR{display:flex;gap:8px;align-items:center;min-width:0}
+.mini{position:relative;display:flex;align-items:center;gap:8px;min-width:0;padding:4px 6px 4px 4px;border-radius:999px;background:var(--glass);box-shadow:inset 0 0 0 1px var(--line);
+  font-size:12px;font-weight:500;max-width:56vw;overflow:hidden;cursor:pointer;animation:miniIn .4s var(--ease-out)}
+.mini[hidden]{display:none}
+@keyframes miniIn{from{opacity:0;transform:translateY(-4px) scale(.96)}}
+.mini::after{content:'';position:absolute;left:36px;right:40px;bottom:3px;height:2px;border-radius:1px;background:linear-gradient(90deg,var(--wood) calc(var(--p,0)*100%),var(--soft2) 0)}
+.mini-disc{width:28px;height:28px;flex:none;border-radius:50%;background:#151312 center/cover;box-shadow:0 2px 6px rgba(0,0,0,.25);animation:spin 1.8s linear infinite;animation-play-state:paused}
+.mini.playing .mini-disc{animation-play-state:running}
+.mini-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mini-tg{position:relative;flex:none;width:30px;height:30px;padding:0;background:var(--soft)} .mini-tg .ico{width:14px;height:14px}
+/* the toggle's hit area takes the capsule's padding around it, so a near miss doesn't open the turntable instead */
+.mini-tg::after{content:'';position:absolute;inset:-4px -6px -4px -4px}
+/* a phone-width header with both the capsule and the credit: the credit drops its label, the title keeps some room */
+@media (max-width:420px){ .topR:has(.mini:not([hidden])) .wallet{font-size:0;gap:0;padding:7px 10px} }
+
+/* the HUD: a museum label over the stage. It adapts to the sheet (portrait block below) so the 3D keeps its band */
+.hud{position:fixed;top:calc(56px + var(--sat));left:50%;transform:translateX(-50%);width:var(--col);z-index:20;padding:0 var(--gut);pointer-events:none;transition:opacity .35s}
+.hud .eyebrow{display:block;margin-bottom:6px}
+/* at most two balanced lines. The em padding / negative margin pair only widens the clip box, layout is unchanged: on a .95 line the
+   italic swashes (J f, ±.15em), accents (Å Ü İ, up to .18em) and descenders (g y, .08em) overhang the line box and overflow:hidden would cut them.
+   fit-content: the box ends where the text does, so its rect is measurable (landscape alt band) */
+.hud h1{margin:-.18em -.16em -.08em;padding:.18em .16em .08em;width:fit-content;max-width:calc(92% + .32em);font-family:var(--f-display);font-weight:400;font-size:var(--t-display);
+  line-height:.95;letter-spacing:-.02em;text-wrap:balance;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;transition:font-size .35s var(--ease-out)}
+.hud h1 em{font-style:italic;color:var(--wood)}
+.hud p{margin:6px 0 0;color:var(--ink2);font-size:14px}
+.hud .tag{display:inline-block;margin-top:10px;font-size:12px;color:var(--ink2);background:var(--glass);padding:5px 11px;border-radius:999px}
+.hud.dim{opacity:.12}
+.hud.swap{animation:hud .5s var(--ease)}
+@keyframes hud{from{opacity:0;transform:translate(-50%,6px)}to{opacity:1;transform:translate(-50%,0)}}
+/* dots and the zoom pill sit on one baseline (A2 sets both bottoms): same 34px height, centred */
+.dots{position:fixed;left:50%;transform:translateX(-50%);z-index:20;display:flex;align-items:center;gap:6px;height:34px;pointer-events:none;transition:opacity .3s}
+.dots i{width:6px;height:6px;border-radius:50%;background:var(--soft2);transition:.3s} .dots i.on{width:18px;border-radius:3px;background:var(--ink)}
+/* zoom / FX: one slim horizontal pill. Hit areas grow 7px up and down; sideways only at the pill's ends, so neighbours never steal a tap */
+.zoomctl{position:fixed;z-index:22;right:max(calc(16px + var(--sar)),calc(50vw - 244px));display:flex;align-items:center;height:34px;padding:0 3px;border-radius:999px;
+  background:var(--glass);box-shadow:inset 0 0 0 1px var(--line);transition:opacity .3s,transform .3s var(--ease)}
+.zoomctl button{position:relative;width:30px;height:28px;padding:0;border-radius:999px;background:transparent;color:var(--ink2)}
+.zoomctl button::after{content:'';position:absolute;inset:-7px 0} .zoomctl button:first-child::after{left:-7px} .zoomctl button:last-child::after{right:-7px}
+.zoomctl button:hover:not(:disabled){background:var(--soft)}
+#zoomReset{width:auto;min-width:34px;padding:0 4px;font:500 11px var(--f-mono);color:var(--ink)}
+#fxBtn{width:auto;padding:0 8px;font:600 10px var(--f-mono);letter-spacing:.08em;color:var(--accent)}
+.zoomctl .sep{width:1px;height:14px;background:var(--line2);margin:0 2px}
+/* coach marks (A5): a soft white dot centred on the real 3D object (World.screenOf), its label hanging below; the gesture loops,
+   paused (not reset) while hidden so the fade-out never jumps */
+.coach{position:fixed;left:0;top:0;z-index:21;pointer-events:none;transform:translate(-50%,-11px);display:grid;justify-items:center;gap:12px;opacity:0;transition:opacity .4s var(--ease)}
+.coach.on{opacity:1}
+.coach i{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 0 0 7px rgba(255,255,255,.3),0 6px 18px rgba(40,25,10,.28)}
+.coach span{max-width:calc(100vw - 32px);overflow:hidden;text-overflow:ellipsis;font:500 12px var(--f-ui);color:#fff;background:rgba(31,27,23,.82);padding:6px 12px;border-radius:999px;white-space:nowrap}
+.coach span:empty{display:none}
+.coach[data-anim=x] i{animation:cX 1.8s var(--ease) infinite} @keyframes cX{0%{transform:translateX(40px);opacity:0}20%,80%{opacity:1}100%{transform:translateX(-40px);opacity:0}}
+.coach[data-anim=down] i{animation:cD 1.6s var(--ease) infinite} @keyframes cD{0%{transform:translateY(-14px);opacity:0}20%{opacity:1}100%{transform:translateY(46px);opacity:0}}
+.coach[data-anim=tap] i{animation:cT 1.4s ease-in-out infinite} @keyframes cT{50%{transform:scale(.7)}}
+.coach[data-anim=arc] i{animation:cA 2s var(--ease) infinite;transform-origin:70px 0} @keyframes cA{to{transform:rotate(-38deg)}}
+.coach[data-anim=flick] i{animation:cF 1.1s var(--ease-out) infinite} @keyframes cF{0%{transform:translateY(-8px);opacity:0}15%{opacity:1}100%{transform:translateY(70px);opacity:0}}
+/* two fingers: the dot and its twin drift apart and turn a little */
+.coach[data-anim=pinch] i{animation:cP 1.9s ease-in-out infinite} .coach[data-anim=pinch] i::after{content:'';position:absolute;inset:0;border-radius:50%;background:inherit;box-shadow:inherit;animation:cP2 1.9s ease-in-out infinite}
+@keyframes cP{0%,100%{transform:translate(-10px,6px)}50%{transform:translate(-24px,14px)}} @keyframes cP2{0%,100%{transform:translate(20px,-12px)}50%{transform:translate(48px,-28px)}}
+.coach:not(.on) i{animation-play-state:paused}
+/* touch screens zoom with two fingers: the pill only rises in while the camera is being moved. On a phone-wide column it
+   would land on the dots (same baseline, 8 crates = 102px of dots), so they step aside while it is up */
+@media (pointer: coarse){ .zoomctl{opacity:0;transform:translateY(6px) scale(.96);pointer-events:none}
+  body.camlive .zoomctl{opacity:1;transform:none;pointer-events:auto} body.camlive .dots{opacity:0} }
+/* portrait only (the landscape rail never covers the HUD): long titles step down, half shrinks to one compact title, full hides it;
+   a band too short for the pill hides it (A2 sets .cramped), even while the camera moves */
+@media not all and (orientation: landscape) and (min-width: 640px) {
+  .hud[data-long] h1{font-size:clamp(30px,8.2vw,40px)}
+  body[data-sheet=half] .hud h1{font-size:clamp(26px,7vw,32px)}
+  body[data-sheet=half] .hud p,body[data-sheet=half] .hud .tag{display:none}
+  body[data-sheet=full] .hud{opacity:0;pointer-events:none;animation:none}
+  body[data-sheet=full] .dots{opacity:0}   /* their baseline would sit in the header row */
+  .zoomctl.cramped,body.camlive .zoomctl.cramped{opacity:0;pointer-events:none}
+}
+
+/* the sheet: an opaque warm-white card (no glass blur: the paper behind it is flat, re-blurring the canvas cost a pass every frame).
+   peek fits its content; half/full carry max-height = height so every size change eases one way, never overshoots */
+.sheet{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--tab) + var(--sab));width:var(--col);z-index:25;background:var(--surface);
+  border-radius:var(--r-lg) var(--r-lg) 0 0;box-shadow:0 -1px 0 var(--line),0 -24px 48px -16px rgba(60,40,20,.14);
+  display:flex;flex-direction:column;overflow:hidden;transition:height .45s var(--ease-out),max-height .45s var(--ease-out)}
+:root{interpolate-size:allow-keywords}
+/* vh first: WebViews before Chrome 108 drop a dvh declaration (in a WebView the two are the same) */
+.sheet[data-size=peek]{height:auto;max-height:min(44vh,380px);max-height:min(44dvh,380px)}
+.sheet[data-size=half]{height:56vh;max-height:56vh;height:56dvh;max-height:56dvh}
+.sheet[data-size=full]{height:calc(100vh - var(--tab) - 56px - var(--sat) - var(--sab));max-height:calc(100vh - var(--tab) - 56px - var(--sat) - var(--sab))}
+/* (a var() declaration always parses, so the dvh one can't simply follow as a fallback) */
+@supports (height:1dvh){.sheet[data-size=full]{height:calc(100dvh - var(--tab) - 56px - var(--sat) - var(--sab));max-height:calc(100dvh - var(--tab) - 56px - var(--sat) - var(--sab))}}
+.sheet.dragging{transition:none;max-height:none}
+.grabber{flex:none;height:28px;padding:0;background:transparent!important;border-radius:0;width:100%;touch-action:none;cursor:grab}
+.grabber i{display:block;width:36px;height:5px;border-radius:3px;background:var(--soft2);margin:auto} .sheet.dragging .grabber{cursor:grabbing}
+.sheet-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:4px var(--gut) 28px;
+  -webkit-mask-image:linear-gradient(#000 calc(100% - 28px),transparent);mask-image:linear-gradient(#000 calc(100% - 28px),transparent)}
+.sheet-body::-webkit-scrollbar{width:0}
+/* pinned footer (studio total + next): outside the scroller, so it never covers the cards */
+.sheet-foot{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px var(--gut) 12px;box-shadow:0 -1px 0 var(--line);background:var(--surface)}
+.sheet-foot:empty{display:none}
+/* tab switch / studio step: children rise in, lightly staggered (backwards fill: nothing lingers on disabled buttons or :active scales) */
+@keyframes sheetIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.sheet-body.swap>*{animation:sheetIn .42s var(--ease-out) backwards}
+.sheet-body.swap>*:nth-child(2){animation-delay:.035s} .sheet-body.swap>*:nth-child(3){animation-delay:.07s} .sheet-body.swap>*:nth-child(n+4){animation-delay:.1s}
+.sheet-body h3{font-family:var(--f-display);font-size:var(--t-h3);margin:28px 0 12px;font-weight:400;letter-spacing:-.01em}
+.sheet-body h3:first-child{margin-top:4px}
+.sheet-body h3 small{font-family:var(--f-ui);font-size:12px;font-weight:400;margin-inline-start:8px}
+.eyebrow{font-family:var(--f-mono);font-size:var(--t-micro);letter-spacing:.14em;color:var(--accent);font-weight:500;text-transform:uppercase}
+/* live cue: a warm dot breathes in the deck eyebrow while the record plays (A2 prefixes <i class=live>, A4 toggles body.playing) */
+.eyebrow .live{display:none;width:6px;height:6px;border-radius:50%;background:var(--warn);margin-right:8px;vertical-align:1px}
+body.playing .eyebrow .live{display:inline-block;animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35}}
+.sub{color:var(--ink2);font-size:14px;margin:4px 0 0}
+.pills{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 4px}
+.pill{font:500 10.5px var(--f-mono);letter-spacing:.04em;padding:4px 9px;border-radius:999px;background:transparent;box-shadow:inset 0 0 0 1px var(--line2);color:var(--ink2)}
+.pill.warn{color:var(--warn);box-shadow:inset 0 0 0 1px rgba(181,81,47,.35)}
+.actions{display:flex;gap:10px;margin-top:14px} .actions button{flex:1;padding:14px 16px;min-height:52px;font-size:15px}
+/* crate chips: a tiny stack of three covers + name and count; the row fades at both edges so it reads as scrollable */
+.boxchips{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x proximity;scroll-padding:0 var(--gut);scrollbar-width:none;overscroll-behavior-x:contain;
+  margin:0 calc(-1*var(--gut));padding:2px var(--gut) 6px;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 22px,#000 calc(100% - 44px),transparent);mask-image:linear-gradient(90deg,transparent,#000 22px,#000 calc(100% - 44px),transparent)}
+.boxchips::-webkit-scrollbar{display:none}
+.boxchips button{scroll-snap-align:start;flex:none;flex-direction:row;align-items:center;gap:10px;height:52px;padding:0 16px 0 8px;border-radius:16px;background:var(--soft)}
+.boxchips .stack{display:flex;flex:none}
+.boxchips .stack img{width:30px;height:30px;border-radius:4px;object-fit:cover;background:var(--soft2);box-shadow:0 1px 3px rgba(0,0,0,.2)} .boxchips .stack img+img{margin-left:-21px}
+.boxchips .lbl{display:flex;flex-direction:column;align-items:flex-start;line-height:1.2}
+.boxchips b{font-size:13.5px;font-weight:600} .boxchips small{font:500 10.5px var(--f-mono);color:var(--dim)}
+.boxchips button.on{background:var(--ink);color:var(--on-ink)} .boxchips button.on small{color:rgba(255,255,255,.6)}
+.card{background:var(--card);border-radius:var(--r);padding:16px;box-shadow:var(--shadow)}
+.list{display:flex;flex-direction:column;gap:2px}
+.li{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:14px;cursor:pointer;font-size:var(--t-ui)}
+.li:hover{background:var(--soft)} .li.on{background:var(--soft2)} .li.on small,.li.on .n,.li.on .d{color:var(--ink2)}
+.li .n{font-family:var(--f-mono);font-size:11px;color:var(--dim);width:16px}
+.li .t{flex:1;min-width:0;direction:ltr;text-align:left;font-family:var(--f-ui)} .li .t div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li .t small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li .d{font-family:var(--f-mono);font-size:11.5px;color:var(--dim)} .li .d .ico{width:16px;height:16px} .li .n .ico{color:var(--dim)}
+.li img{width:44px;height:44px;border-radius:8px;object-fit:cover;flex:none;background:var(--soft)}
+
+/* deck */
+.transport{display:flex;align-items:center;gap:14px;margin:2px 0 8px}
+.transport .play{width:60px;height:60px;font-size:20px;flex:none;padding:0;transition:background .2s,transform .15s,box-shadow .5s var(--ease)}
+.play .ico{width:22px;height:22px}
+/* while the record plays a faint wood halo rings the ink button (its own highlight and drop shadow stay) */
+body.playing .transport .play{box-shadow:0 0 0 6px rgba(185,119,58,.12),inset 0 1px 0 rgba(255,255,255,.08),0 8px 18px -8px rgba(31,27,23,.5)}
+.seek{flex:1;min-width:0}
+/* the side as a groove map: one flat band per track, the played part in ink, a round stylus head riding on it */
+.groove{position:relative;height:30px;cursor:pointer;touch-action:none;direction:ltr;outline:none}
+.groove .segs{position:absolute;inset:11px 0;display:flex;gap:2px}
+.groove b{position:relative;min-width:3px;border-radius:2px;overflow:hidden;background:var(--soft2);transition:transform .25s var(--ease)}
+.groove b u{position:absolute;inset:0;transform-origin:left;transform:scaleX(0);transition:transform .3s linear;background:var(--ink)}
+.groove b.on{transform:scaleY(1.6)}
+.groove .head{position:absolute;top:50%;bottom:auto;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:var(--ink);pointer-events:none;
+  box-shadow:0 0 0 3px var(--surface),0 1px 4px rgba(0,0,0,.25);transition:left .3s linear,transform .2s var(--spring)}
+/* dragging (a finger on the groove or on the 3D arm): fill and head follow 1:1, the head swells on its spring */
+.groove.drag b u{transition:none} .groove.drag .head{transform:scale(1.35);transition:transform .2s var(--spring)}
+.times{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:11px;color:var(--dim);direction:ltr;margin-top:2px}
+.nowline{display:grid;grid-template-columns:minmax(0,1fr);gap:2px;margin:2px 0 6px}
+.nowline b{font-size:15px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nowline small{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* quick actions: one even row of icon tiles (Flip · Disc · Eject · Files · SoundCloud) */
+.qa{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:8px;margin:8px 0 4px}
+.qa>button,.qa>.btn{flex-direction:column;gap:6px;min-width:0;height:64px;padding:0 4px;border-radius:16px;background:var(--soft);font-size:11.5px;font-weight:500;color:var(--ink2)}
+.qa>.btn:hover{background:var(--soft2)}
+.qa span{max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.qa .ico{width:20px;height:20px;color:var(--ink)}
+.sc-mark{font:600 12px/20px var(--f-mono);letter-spacing:.04em;color:var(--sc)}
+/* end of side: replaces the transport until the arm lifts or the record flips */
+.endcard{padding:6px 0 4px} .endcard .actions{margin-top:10px}
+.toolrow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tool{display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:12px;border-radius:16px;background:var(--card);box-shadow:var(--shadow);cursor:pointer;text-align:start;font-size:12px;white-space:normal}
+.tool:hover:not(:disabled){background:var(--card)} .tool b{font-size:var(--t-cap)}
+/* wear bar: green when clean, warming to rust as it fills (A3 sets --v 0..1 on the card). @supports, not a second declaration:
+   a var() declaration always parses, so on a WebView without color-mix it would void the plain-rust fallback */
+.tool .bar{height:4px;border-radius:2px;background:var(--soft2);overflow:hidden;direction:ltr}
+.tool .bar i{display:block;height:100%;background:var(--warn);transition:width .6s}
+@supports (color:color-mix(in oklab,red,blue clamp(0%,50%,100%))){.tool .bar i{background:color-mix(in oklab,var(--ok),var(--warn) clamp(0%,var(--v,1)*100%,100%))}}
+.tool.locked{opacity:.55}
+.notice{font-size:12px;line-height:1.8;color:var(--ink2);background:var(--soft);border-radius:14px;padding:10px 12px;margin-top:12px}
+.notice a{color:var(--ink)}
+.ab{display:flex;align-items:center;gap:10px;margin-top:14px}
+.ab .meter{flex:1;height:4px;border-radius:2px;background:var(--soft2);overflow:hidden;direction:ltr} .ab .meter i{display:block;height:100%;width:0;background:var(--ink)}
+details.fold{margin-top:16px;background:var(--card);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow)}
+details.fold summary{cursor:pointer;font-weight:600;font-size:14px;list-style:none;display:flex;align-items:center;justify-content:space-between}
+details.fold summary::-webkit-details-marker{display:none}
+/* a drawn chevron (the fullwidth ＋/－ fell back to a CJK font); the 2px nudge keeps the V, then the ^, optically centred on the text */
+details.fold summary::after{content:'';flex:none;width:7px;height:7px;border:solid var(--dim);border-width:0 1.5px 1.5px 0;transform:translateY(-2px) rotate(45deg);transition:transform .25s var(--ease)}
+details.fold[open] summary::after{transform:translateY(2px) rotate(-135deg)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{font-size:var(--t-cap);padding:8px 13px;background:var(--soft)}
+.chips button.on{background:var(--ink);color:var(--on-ink)}
+.sl{display:grid;grid-template-columns:96px 1fr 28px;gap:10px;align-items:center;font-size:var(--t-cap);margin:8px 0}
+.sl output{font-family:var(--f-mono);font-size:11px;color:var(--dim);text-align:right}
+
+/* studio */
+/* a segmented progress line: five equal segments, the name under each (the HUD eyebrow carries the step number) */
+.stepper{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin:2px 0 6px}
+.stepper button{flex-direction:column;align-items:flex-start;gap:7px;min-width:0;padding:4px 0 6px;background:transparent!important;border-radius:0;font-size:11.5px;font-weight:500;color:var(--dim)}
+.stepper i{display:block;width:100%;height:3px;border-radius:2px;background:var(--soft2);transition:background .3s}
+.stepper span{max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.stepper .done{color:var(--ink2)} .stepper .done i{background:var(--ink2)} .stepper .on{color:var(--ink)} .stepper .on i{background:var(--ink)}
+/* 2-up, or one column in a narrow landscape panel (never 3: the min is just under half the row; auto-fill keeps a lone card half width) */
+.opts{display:grid;grid-template-columns:1fr 1fr;grid-template-columns:repeat(auto-fill,minmax(max(140px,calc(50% - 6px)),1fr));gap:10px}
+/* option card: title and price share one baseline row (.opt-h), then the sub line and an optional mono spec line; the base button's
+   centring is undone, and the selection is an inset ink ring (outline: no layout shift) with a faint halo */
+.opt{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:4px;text-align:start;border-radius:var(--r);padding:14px 14px 15px;background:var(--card);box-shadow:var(--e1);
+  border:0;outline:1.5px solid transparent;outline-offset:-1.5px;white-space:normal;transition:outline-color .2s,box-shadow .2s,transform .15s}
+.opt:hover:not(:disabled){background:var(--card)}
+.opt-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px} .opt-h b{min-width:0}
+.opt b{font-size:15px;font-weight:600;letter-spacing:-.01em} .opt small{font-size:12px;line-height:1.45;color:var(--dim)}
+.opt small.cap{font:500 10.5px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+.opt .price{flex:none;font:500 11.5px/1 var(--f-mono);font-variant-numeric:tabular-nums;color:var(--ink2)}
+.opt.on{outline-color:var(--ink);box-shadow:0 0 0 4px rgba(31,27,23,.06),var(--e1)} .opt.on .price{color:var(--ink)}
+.swatches{display:flex;gap:12px;flex-wrap:wrap}
+.swatches button{width:36px;height:36px;padding:0;border:0;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);transition:box-shadow .2s,transform .15s}
+.swatches button.on{outline:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12),0 0 0 3px var(--surface),0 0 0 4.5px var(--ink)}
+.cap-head{display:flex;justify-content:space-between;font-size:12px;color:var(--dim);margin-bottom:6px}
+.cap-head b{color:var(--ink);font-family:var(--f-mono);font-weight:600;letter-spacing:2px}
+.cap-bar{height:5px;border-radius:3px;background:var(--soft2);overflow:hidden;direction:ltr;margin-bottom:8px}
+.cap-bar i{display:block;height:100%;background:var(--ink);transition:width .3s} .cap-bar.over i{background:var(--warn)}
+.sidebox{margin-bottom:14px}
+.trow{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--r-sm);font-size:var(--t-cap);background:var(--card);box-shadow:var(--shadow);margin-bottom:6px;direction:ltr}
+.trow .t{flex:1;min-width:0;font-family:var(--f-ui)} .trow .t div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .trow small{font-size:10.5px}
+.trow button{position:relative;flex:none;width:32px;height:32px;padding:0;font-size:11px} .trow button::after{content:'';position:absolute;inset:-6px}
+.trow select{width:auto;padding:3px 6px;font-size:11px;border-radius:8px}
+.trow img{width:34px;height:34px;border-radius:6px;object-fit:cover}
+.empty{color:var(--dim);font-size:var(--t-cap);text-align:center;padding:18px;background:transparent;border:1.5px dashed var(--line2);border-radius:14px}
+.seg{display:flex;background:var(--soft);border-radius:999px;padding:4px;margin-bottom:16px}
+.seg button{flex:1;background:transparent;font-size:13px;padding:9px 8px;color:var(--ink2)} .seg button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+.variations{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.variations canvas{width:100%;aspect-ratio:1;border-radius:6px;cursor:pointer;box-shadow:var(--shadow);outline:2px solid transparent;outline-offset:2px;transition:transform .2s}
+.variations canvas:hover{transform:translateY(-2px)} .variations canvas.on{outline-color:var(--ink)}
+.summary{width:100%;border-collapse:collapse;font-size:var(--t-ui)}
+.summary td{padding:10px 2px;border-bottom:1px solid var(--line)} .summary td:last-child{text-align:right;font-family:var(--f-mono);color:var(--ink2)}
+.summary tr.total td{font-weight:600;color:var(--ink);font-size:16px;border:0}
+.pricebar{position:static;margin:0;padding:0;background:none;box-shadow:none;width:100%;display:flex;align-items:center;justify-content:space-between}
+.pricebar .tot{display:flex;flex-direction:column;gap:2px;line-height:1.1}
+.pricebar small{font:500 10px/1.2 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.pricebar b{font:500 22px/1.1 var(--f-mono);letter-spacing:-.01em}
+.pricebar .row{flex-wrap:nowrap} .pricebar button{height:44px} .pricebar .primary{min-width:112px}
+
+/* shop */
+.shopgrid{display:grid;grid-template-columns:1fr 1fr;grid-template-columns:repeat(auto-fill,minmax(max(124px,calc(50% - 7px)),1fr));gap:12px}   /* two columns in the ~280px landscape panel too */
+/* turntables: a horizontal snap rail at peek, so the 3D model stays large above (accessories and market keep the 2-up grid) */
+.rail{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(150px,44%);gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 var(--gut);
+  overscroll-behavior-x:contain;margin:0 calc(-1*var(--gut));padding:2px var(--gut) 6px;scrollbar-width:none}
+.rail::-webkit-scrollbar{display:none} .rail>.item{scroll-snap-align:start}
+/* product card: selection is an inset ink ring (outline: no layout shift), the art sits in a soft studio light */
+.item{background:var(--card);border-radius:var(--r);box-shadow:var(--e1);overflow:hidden;display:flex;flex-direction:column;cursor:pointer;text-align:start;
+  border:0;outline:1.5px solid transparent;outline-offset:-1.5px;transition:outline-color .25s,transform .15s}
+.item.on{outline-color:var(--ink)} .item:active{transform:scale(.98)}
+.item .art{aspect-ratio:4/3;background:radial-gradient(120% 90% at 50% 30%,var(--card) 0,var(--soft) 78%);display:grid;place-items:center;position:relative}
+.item .art canvas{width:58%;border-radius:4px;box-shadow:0 8px 20px rgba(60,40,20,.15)}
+/* a 3D snapshot fills the art box: no print shadow or corner */
+.item .art[data-snap] canvas{width:100%;height:100%;object-fit:contain;border-radius:0;box-shadow:none}
+.item .art>svg{width:38%;height:auto;filter:drop-shadow(0 6px 10px rgba(60,40,20,.18))}
+.item .body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:3px;flex:1}
+.item b{font-size:14px;font-weight:600;letter-spacing:-.01em}
+.item .body>small{font-size:12px;line-height:1.45;color:var(--dim);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.item .foot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding-top:10px}
+.item .foot span{font:500 13px var(--f-mono)}
+.item .foot button{height:30px;padding:0 12px;font-size:12.5px}
+.badge{position:absolute;top:10px;left:10px;right:auto;font:500 10px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;padding:4px 8px 4px 18px;border-radius:999px;
+  background:rgba(255,255,255,.92);color:var(--ink)}
+.badge::before{content:'';position:absolute;left:8px;top:50%;width:5px;height:5px;margin-top:-2.5px;border-radius:50%;background:var(--ok)}
+/* the market's kind label (Record, Cover template, Preset) is not a status: no green dot */
+.art[data-mk] .badge{padding-left:8px} .art[data-mk] .badge::before{display:none}
+
+/* bottom nav: a soft pill slides (spring) under the active icon; app.js sets --i on #tabbar.
+   Fixed geometry per cell, in both orientations: icon 12px below the cell top, pill 30px tall 8px below it, so the icon sits centred in the pill */
+.tabbar{--i:0;--n:5;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:var(--col);z-index:40;display:grid;grid-template-columns:repeat(var(--n),1fr);
+  height:calc(var(--tab) + var(--sab));padding:0 12px var(--sab);background:var(--surface);box-shadow:0 -1px 0 var(--line)}
+.tab-ind{position:absolute;top:8px;left:12px;width:calc((100% - 24px)/var(--n));height:30px;display:flex;justify-content:center;pointer-events:none;
+  transform:translateX(calc(var(--i)*100%));transition:transform .45s var(--spring)}
+.tab-ind::before{content:'';width:54px;height:100%;border-radius:999px;background:var(--soft)}
+.tabbar button{position:relative;z-index:1;flex-direction:column;justify-content:flex-start;gap:7px;background:transparent!important;font-size:11px;font-weight:500;
+  line-height:14px;letter-spacing:.01em;color:var(--dim);padding:12px 0 0}
+.tabbar button svg{flex:none;width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transition:transform .3s var(--spring)}
+.tabbar button.on{color:var(--ink)} .tabbar button.on svg{stroke-width:1.9} .tabbar button:active svg{transform:scale(.86)}
+/* something is playing on the turntable while you browse elsewhere (A4 toggles .live) */
+.tabbar button.live::after{content:'';position:absolute;top:8px;left:calc(50% + 9px);width:6px;height:6px;border-radius:50%;background:var(--wood);animation:pulse 1.8s ease-in-out infinite}
+
+/* modal / toast */
+.modal{position:fixed;inset:0;z-index:100;display:none;align-items:flex-end;justify-content:center;background:rgba(30,22,14,.38)}
+.modal.on{display:flex;animation:fade .25s}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.modal-card{width:min(480px,100%);max-height:86vh;max-height:86dvh;overflow:auto;background:var(--surface);border-radius:26px 26px 0 0;padding:22px 20px calc(22px + var(--sab));animation:up .35s var(--ease)}
+@keyframes up{from{transform:translateY(28px);opacity:.6}to{transform:none;opacity:1}}
+.modal-card:focus{outline:0}
+.modal-card h3{margin:0 0 6px;font-size:18px} .modal-card p{color:var(--ink2);font-size:13.5px;line-height:1.9;margin:0 0 16px}
+.grab{width:38px;height:4px;border-radius:2px;background:var(--soft2);margin:-8px auto 14px}
+/* toast: just above the sheet (A2 publishes --above-sheet = the dots/zoom baseline), never over the title or the notch;
+   with the sheet at full that would be off the top of the screen, so it stops just under the header, over the sheet's edge */
+.toast{position:fixed;left:50%;top:auto;bottom:min(calc(var(--above-sheet,160px) + 44px),calc(100% - var(--sat) - 112px));transform:translate(-50%,12px);opacity:0;z-index:200;display:flex;align-items:center;gap:10px;
+  padding:10px 16px;border-radius:999px;background:rgba(31,27,23,.92);color:#fff;font:500 13px/1.3 var(--f-ui);box-shadow:var(--e2);transition:.35s var(--ease);pointer-events:none;max-width:90vw}
+.toast.on{opacity:1;transform:translate(-50%,0)} .toast.act{padding:6px 6px 6px 18px} .toast.on.act{pointer-events:auto}
+.toast button{background:rgba(255,255,255,.14);color:#fff;padding:7px 12px;font-size:12.5px} .toast button:hover:not(:disabled){background:rgba(255,255,255,.24)}
+.toast .ico{width:15px;height:15px}
+.lic{font-size:var(--t-micro);padding:2px 7px;border-radius:999px;background:var(--soft);color:var(--ink2);white-space:nowrap;font-family:var(--f-ui)}
+.lic.fx{background:rgba(63,122,59,.1);color:var(--ok)}
+.sc-brand{font-family:var(--f-mono);font-weight:600;color:var(--sc);font-size:12px}
+/* one pass, then rest: an infinite .01ms loop would be sampled at a random phase each frame (the pulse/spin would flicker) */
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* noise lab (test build) */
+details.lab{border:0;box-shadow:var(--e1)}
+/* the preset name rides next to "Sound" as a bronze tag; the chevron keeps the far end */
+details.lab summary small{font:500 10.5px var(--f-mono);color:var(--accent);background:rgba(134,98,42,.08);padding:3px 8px;border-radius:999px;margin-left:8px;margin-right:auto}
+details.lab summary small:empty{display:none}
+/* presets: one swipeable row, edge to edge inside the card */
+#presetChips{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;margin:0 -16px;padding:0 16px 2px;scroll-padding:0 16px;scrollbar-width:none}
+#presetChips::-webkit-scrollbar{display:none} #presetChips button{flex:none}
+.sl.big{grid-template-columns:80px 1fr 44px;margin:12px 0 6px} .sl.big label{font-weight:600}
+.levels{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin:10px 0 4px}
+.lv{display:grid;grid-template-columns:58px 1fr;align-items:center;gap:8px;font-size:11.5px;color:var(--ink2)}
+.lv i{display:block;height:4px;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--wood));transition:width .25s;min-width:2px}
+
+/* keyboard focus: one ink ring everywhere (pointer taps don't raise it). Inset where a scroller or the bar edge would clip it;
+   white on the ink-filled chips; fields get a ring that follows their radius */
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.tabbar button:focus-visible,.boxchips button:focus-visible,#presetChips button:focus-visible,.rail>.item:focus-visible{outline-offset:-2px}
+.boxchips button.on:focus-visible,#presetChips button.on:focus-visible{outline-color:rgba(255,255,255,.85)}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:0;box-shadow:0 0 0 2px var(--ink)}
+.groove:focus-visible{outline:2px solid var(--ink);outline-offset:4px}
+.swatches button:focus-visible{outline:2px solid var(--ink);outline-offset:6px}
+.grabber:focus-visible{outline:0} .grabber:focus-visible i{outline:2px solid var(--ink);outline-offset:3px}
+
+/* numerals line up in columns; kept after the component rules so a later `font:` shorthand cannot reset it */
+/* 33⅓ built from "1/3" with the font's own fraction glyphs (no bundled font has U+2153) */
+.frac{font-variant-numeric:diagonal-fractions;letter-spacing:0} .eyebrow .frac,.pill .frac{letter-spacing:-.24em;margin-right:.3em}   /* mono: one cell per glyph */
+.times,.wallet b,.price,.summary td:last-child,.sl output,.cap-head,.item .foot span,.pricebar b,.li .d{font-variant-numeric:tabular-nums}
+
+/* ---------- landscape: 3D on the left, then the full-height side panel, then the tabs as a vertical rail on the right edge ----------
+   --stage is the free 3D area left of the panel; the rail is var(--rail) + the right safe area wide (app.js measures both rects) */
+@media (orientation: landscape) and (min-width: 640px) {
+  :root{--panel:min(400px,38vw);--rail:72px;--stage:calc(100vw - var(--panel) - var(--rail) - var(--sar))}
+  .top{left:0;transform:none;width:var(--stage);padding-left:max(var(--gut),var(--sal))}
+  .hud{left:0;transform:none;width:var(--stage);padding-left:max(var(--gut),var(--sal));top:calc(52px + var(--sat))}
+  .hud.swap{animation:hudL .5s var(--ease)}
+  .hud h1{font-size:clamp(30px,4.6vw,52px);max-width:calc(70% + .32em)}
+  .tabbar{top:0;bottom:0;left:auto;right:0;transform:none;width:calc(var(--rail) + var(--sar));height:auto;grid-template-columns:1fr;grid-auto-rows:64px;
+    align-content:start;padding:calc(var(--sat) + 24px) var(--sar) var(--sab) 0;box-shadow:-1px 0 0 var(--line)}
+  .tab-ind{top:calc(var(--sat) + 32px);left:0;width:var(--rail);transform:translateY(calc(var(--i)*64px))}
+  .sheet,.sheet[data-size]{top:0;bottom:0;left:auto;right:calc(var(--rail) + var(--sar));transform:none;width:var(--panel);height:auto;max-height:none;
+    border-radius:0;box-shadow:-1px 0 0 var(--line);padding-top:var(--sat);padding-bottom:var(--sab)}
+  .grabber{height:14px;visibility:hidden} .grabber i{display:none}
+  .dots{left:calc(var(--stage)/2);bottom:calc(18px + var(--sab))!important}
+  .zoomctl{right:calc(var(--panel) + var(--rail) + var(--sar) + 16px);bottom:calc(18px + var(--sab))!important}
+  .toast{bottom:calc(62px + var(--sab));left:calc(var(--stage)/2);max-width:calc(var(--stage) - 32px)}
+}
+/* short landscape phones: a tighter header and title, smaller deck controls */
+@media (orientation: landscape) and (max-height: 480px) {
+  .top{padding-top:calc(10px + var(--sat))} .hud{top:calc(44px + var(--sat))} .hud h1{font-size:clamp(26px,4vw,38px)} .hud p{font-size:13px} .hud .tag{display:none}
+  .transport .play{width:52px;height:52px} .qa>button,.qa>.btn{height:56px}
+}
+@keyframes hudL{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ---------- camera shots: one always-visible pill on the left of the stage, mirroring the zoom pill on the right ---------- */
+.shotctl{position:fixed;z-index:22;left:max(calc(16px + var(--sal)),calc(50vw - 244px));display:flex;align-items:center;gap:7px;height:34px;padding:0 12px 0 9px;
+  border-radius:999px;background:var(--glass);box-shadow:inset 0 0 0 1px var(--line);color:var(--ink);font:500 11px var(--f-mono);letter-spacing:.04em}
+.shotctl .ico{width:17px;height:17px}
+.shotctl b{font-weight:500;color:var(--dim)}
+.shotctl::after{content:'';position:absolute;inset:-7px -4px}
+.shotcap{position:fixed;z-index:22;left:50%;bottom:calc(var(--above-sheet,160px) + 100px);transform:translate(-50%,8px);opacity:0;pointer-events:none;
+  font:400 italic 22px var(--f-display);color:var(--ink);letter-spacing:-.01em;white-space:nowrap;transition:opacity .35s var(--ease),transform .5s var(--ease)}
+.shotcap.on{opacity:1;transform:translate(-50%,0)}
+.shotcap small{display:block;text-align:center;font:500 9.5px var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-style:normal;margin-bottom:2px}
+@media not all and (orientation: landscape) and (min-width: 640px) { .shotctl.cramped{opacity:0;pointer-events:none} body[data-sheet=full] .shotctl{opacity:0;pointer-events:none} }
+@media (orientation: landscape) and (min-width: 640px) { .shotctl{left:calc(16px + var(--sal));bottom:calc(18px + var(--sab))!important} .shotcap{left:calc(var(--stage,60vw)/2);bottom:70px} }
+
+/* theme switch in the header */
+.themeBtn{width:32px;height:32px;padding:0;background:transparent;box-shadow:inset 0 0 0 1px var(--line2);color:var(--ink2);flex:none}
+.themeBtn .ico{width:16px;height:16px}
+.themeBtn .moon{display:block} .themeBtn .sun{display:none}
+html[data-theme=dark] .themeBtn .moon{display:none} html[data-theme=dark] .themeBtn .sun{display:block}
+
+/* ---------- night: a dark room, one warm lamp. The page colour itself comes from the stage (it calibrates --bg to the floor). ---------- */
+html[data-theme=dark]{color-scheme:dark;
+ --bg:#15100b;--surface:#1b1510;--card:#221b14;--soft:#2a2119;--soft2:#362b20;--line:rgba(255,226,186,.08);--line2:rgba(255,226,186,.16);
+ --ink:#f2e6d4;--ink2:#c9b79f;--dim:#9c8a73;--mute:#5f5243;--accent:#e0ac62;--wood:#d9904c;--ok:#7fb56f;--warn:#e07a52;
+ --e1:0 1px 0 rgba(0,0,0,.3),0 1px 3px rgba(0,0,0,.4);--e2:0 1px 2px rgba(0,0,0,.4),0 14px 36px -10px rgba(0,0,0,.7);
+ --glass:rgba(27,21,16,.86);--on-ink:#17110c;--ink-hover:#ffffff;--vig:rgba(0,0,0,.55)}
+html[data-theme=dark] body::before{background:radial-gradient(120% 85% at 45% 38%,transparent 42%,var(--vig) 100%)}
+html[data-theme=dark] .boxchips button.on small{color:rgba(23,17,12,.6)}
+html[data-theme=dark] .spinrec{box-shadow:0 12px 34px rgba(0,0,0,.6),0 0 60px rgba(255,160,80,.12)}
+html[data-theme=dark] .hud h1{text-shadow:0 1px 24px rgba(0,0,0,.35)}
+html[data-theme=dark] .groove b{background:repeating-linear-gradient(90deg,var(--soft2) 0 1px,var(--soft) 1px 3px)}
+html[data-theme=dark] .groove b u{background:repeating-linear-gradient(90deg,#e8d6bc 0 1px,#cdb391 1px 3px)}
+html[data-theme=dark] input[type=range]{accent-color:var(--accent)}
+html,body,.sheet,.tabbar,.top,.mini,.zoomctl,.shotctl{transition:background-color .5s var(--ease),color .5s var(--ease)}
+
+/* ---------- collapsible panel: the chevron sits in the grabber row (portrait) / at the top of the panel (landscape) ---------- */
+.sheetMin{position:absolute;top:0;right:8px;z-index:2;width:40px;height:28px;padding:0;background:transparent!important;color:var(--dim);border-radius:10px}
+.sheetMin .ico{width:18px;height:18px;transition:transform .45s var(--ease-out)}
+.sheet[data-min] .sheetMin .ico{transform:rotate(180deg)}
+.sheet[data-min] .sheet-body,.sheet[data-min] .sheet-foot{visibility:hidden;opacity:0}
+.sheet-body,.sheet-foot{transition:opacity .3s var(--ease)}
+@media not all and (orientation: landscape) and (min-width: 640px) {
+  .sheet[data-min],.sheet[data-min][data-size]{height:28px;max-height:28px}
+  .sheet[data-min].dragging{max-height:none}
+  body[data-min] .hud h1{font-size:var(--t-display)} body[data-min] .hud p{display:block}
+}
+@media (orientation: landscape) and (min-width: 640px) {
+  .sheet,.sheet[data-size]{transition:width .45s var(--ease-out)}
+  body[data-min]{--panel:44px;--stage:calc(100vw - 44px - var(--rail) - var(--sar))}
+  .sheetMin{top:calc(var(--sat) + 10px);left:2px;right:auto;width:40px;height:40px}
+  .sheetMin .ico{transform:rotate(-90deg)}
+  .sheet[data-min] .sheetMin .ico{transform:rotate(90deg)}
+  .top,.hud,.dots,.zoomctl,.toast{transition:width .45s var(--ease-out),right .45s var(--ease-out),left .45s var(--ease-out),opacity .3s}
+  .sheet:not([data-min]) .sheet-body{padding-top:30px}
+}
+
+/* ---------- you: profile card, your collection row, sharing, the community feed ---------- */
+.prof{display:flex;flex-direction:column;gap:12px}
+.prof-h{display:flex;align-items:center;gap:14px}
+.avatar{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;flex:none;overflow:hidden;color:#fff;font:600 15px var(--f-ui);letter-spacing:.02em;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.avatar.big{width:60px;height:60px;font-size:20px}
+.avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.avbtn{position:relative;flex:none;display:block;padding:0;background:transparent!important;border-radius:50%;cursor:pointer}
+.avbtn::after{content:'';position:absolute;right:-2px;bottom:-2px;width:20px;height:20px;border-radius:50%;background:var(--card);box-shadow:var(--e1);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235d544a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5v14M5 12h14'/%3E%3C/svg%3E");background-size:11px;background-repeat:no-repeat;background-position:center}
+.prof-id{display:flex;flex-direction:column;gap:3px;min-width:0;align-items:flex-start}
+.prof-id b{font-size:17px;font-weight:600;letter-spacing:-.01em}
+.prof-id small{font:500 11px var(--f-mono);letter-spacing:.02em;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.prof-name{display:inline-flex;align-items:center;gap:7px;padding:2px 0;background:transparent!important;border-radius:6px;font-family:var(--f-display);font-size:24px;font-weight:400;letter-spacing:-.01em;color:var(--ink);min-width:0;max-width:100%}
+.prof-name>span{overflow:hidden;text-overflow:ellipsis}
+.prof-name .ico{color:var(--mute);flex:none;transition:color .2s} .prof-name:hover .ico{color:var(--ink2)}
+.prof-bio{display:block;width:100%;text-align:start;white-space:normal;padding:0;background:transparent!important;border-radius:6px;font-size:14px;line-height:1.55;color:var(--ink2);font-weight:400}
+.prof-bio.blank{color:var(--mute);font-style:italic}
+.prof-bio-ro{margin:0;font-size:14px;line-height:1.55;color:var(--ink2)}
+.prof .inline{margin:0} .prof input.inline{font-family:var(--f-display);font-size:22px;padding:6px 10px} .prof textarea.inline{font-size:14px}
+.stats{display:flex;gap:4px;padding-top:12px;box-shadow:0 -1px 0 var(--line)}
+.stats>div{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+.stats b{font:500 18px var(--f-mono);letter-spacing:-.01em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.stats small{font:500 10px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+/* the collection row: covers edge to edge, titles under them */
+.yrow{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x proximity;scroll-padding:0 var(--gut);scrollbar-width:none;overscroll-behavior-x:contain;
+  margin:0 calc(-1*var(--gut));padding:2px var(--gut) 8px;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 var(--gut),#000 calc(100% - 44px),transparent);mask-image:linear-gradient(90deg,transparent,#000 var(--gut),#000 calc(100% - 44px),transparent)}
+.yrow::-webkit-scrollbar{display:none}
+.ythumb{scroll-snap-align:start;flex:none;flex-direction:column;align-items:flex-start;gap:7px;width:84px;padding:0;background:transparent!important;border-radius:8px;white-space:normal;text-align:start}
+.ythumb img,.ythumb .ph{display:block;width:84px;height:84px;border-radius:6px;object-fit:cover;background:var(--soft2);box-shadow:0 6px 14px -6px rgba(60,40,20,.35);transition:transform .2s var(--ease)}
+.ythumb:hover img{transform:translateY(-2px)}
+.ythumb small{display:block;width:100%;font-size:11.5px;line-height:1.3;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* community cards: a cover, the words, one row of actions; one column everywhere (the landscape panel is narrow) */
+.cmlist{display:flex;flex-direction:column;gap:10px}
+.cm{display:grid;grid-template-columns:72px minmax(0,1fr);grid-template-areas:"art body" "acts acts";gap:4px 14px;padding:14px}
+.cm-art{grid-area:art;width:72px;height:72px;border-radius:6px;overflow:hidden;background:var(--soft2);box-shadow:0 6px 14px -6px rgba(60,40,20,.35)}
+.cm-art canvas{display:block;width:100%;height:100%}
+.cm-body{grid-area:body;display:flex;flex-direction:column;gap:2px;min-width:0}
+.cm-body>b{font-size:15px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cm-body>small{font-size:12.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cm .by{align-self:flex-start;padding:1px 0;background:transparent!important;border-radius:4px;font:500 11px var(--f-mono);letter-spacing:.02em;color:var(--accent)}
+.cm-note{margin:4px 0 0;font-size:13px;line-height:1.5;color:var(--ink2);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.cm-meta{margin-top:3px;font:500 10.5px var(--f-mono);letter-spacing:.02em;color:var(--dim)}
+.cm-acts{grid-area:acts;display:flex;align-items:center;gap:8px;padding-top:10px;margin-top:6px;box-shadow:0 -1px 0 var(--line)}
+.cm-acts button{height:36px;padding:0 14px;font-size:12.5px} .cm-acts .primary{margin-left:auto}
+.cm-acts .pill{margin-left:auto}
+.like{gap:6px;padding:0 12px!important;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.like .ico{transition:transform .25s var(--spring),fill .2s}
+.like.on{color:var(--warn)} .like.on .ico{fill:currentColor;transform:scale(1.1)}
+.sub-h{font-family:var(--f-display);font-weight:400;font-size:18px;margin:18px 0 10px} .sub-h small{font-family:var(--f-ui);font-size:12px;margin-inline-start:8px;color:var(--dim)}
+.modal-card .prof{gap:10px} .modal-card .stats b{font-size:16px}
+html[data-theme=dark] .avatar{color:#17110c}
+html[data-theme=dark] .avbtn::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c9b79f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5v14M5 12h14'/%3E%3C/svg%3E")}
+
+/* buy & link your copy (catalog albums) */
+.own{margin-top:12px;padding:12px 14px;border-radius:var(--r-sm);background:var(--soft)}
+.own .row .btn,.own .row button{flex:1;justify-content:center}
+a.btn{text-decoration:none}
+.row>button.ghost small{margin-left:6px;color:var(--dim);font:500 10px var(--f-mono);letter-spacing:.06em;text-transform:uppercase}
