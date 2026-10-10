@@ -76,7 +76,9 @@
       const file = t.file || (window.OWN_MEDIA && OWN_MEDIA[c.id] && OWN_MEDIA[c.id][i]);   // tools/import_music.py fills OWN_MEDIA
       const au = t.src === "au" ? {id: t.au, dur: Math.round(t.ms/1000), link: t.link, user: t.user, art: t.art}
         : !file && window.AUDIUS_MAP && AUDIUS_MAP[c.id] && AUDIUS_MAP[c.id][i];   // a full stream found for a catalog track
-      PREV[id] = au ? auEntry(t, au) : t.src === "ia" ? {title: t.title, artist: t.artist, dur: Math.round(t.ms/1000), full: Math.round(t.ms/1000), url: t.file, ia: true, fx: true, link: t.link, year: t.year, lic: "Internet Archive · public domain"}
+      const iam = !au && !file && window.IA_MAP && IA_MAP[c.id] && IA_MAP[c.id][i];   // a full upload on the Internet Archive
+      PREV[id] = au ? auEntry(t, au) : iam ? {title: t.title, artist: t.artist, dur: iam.dur, full: iam.dur, url: iam.url, ia: true, fx: true, link: iam.link, lic: "Full track · Internet Archive", upload: true}
+        : t.src === "ia" ? {title: t.title, artist: t.artist, dur: Math.round(t.ms/1000), full: Math.round(t.ms/1000), url: t.file, ia: true, fx: true, link: t.link, year: t.year, lic: "Internet Archive · public domain"}
         : file ? {title: t.title, artist: t.artist, dur: Math.round(t.ms/1000), full: Math.round(t.ms/1000), url: file, own: true, lic: "Your own copy"}
                : {title: t.title, artist: t.artist, dur: 30, full: Math.round(t.ms/1000), url: t.preview, preview: true, lic: "30-sec preview · Apple Music"}; return id; });
     // every record in the crates plays in full: a catalog album keeps only the tracks that do (your file, a full Audius
@@ -891,6 +893,7 @@
       box.innerHTML = bar("Crackle", lv.crackle*lv.gate, .6) + bar("Hiss", lv.hiss*lv.gate, .35) + bar("Rumble", lv.rumble*lv.gate, 1) + bar("Hum", lv.hum*lv.gate, .03); }
     const t = tr(ids[Engine.idx]), at = $("attrib");
     if (at) { const html = t && t.sc ? `<div class="notice">From <span class="sc-brand">SoundCloud</span> · <a href="${esc(t.permalink)}" target="_blank" rel="noopener">${esc(t.artist)} — ${esc(t.title)}</a>${t.fx ? "" : "<br>This track's licence doesn't allow changes, so it plays without the vinyl effect."}</div>`
+        : t && t.upload ? `<div class="notice">Full track from the <a href="${esc(t.link)}" target="_blank" rel="noopener">Internet Archive</a></div>`
         : t && t.ia ? `<div class="notice">78 rpm side from the <a href="${esc(t.link || "https://archive.org/details/georgeblood")}" target="_blank" rel="noopener">Internet Archive</a>${t.year ? ` · recorded ${esc(t.year)}` : ""} · public domain</div>`
         : t && t.src === "audius" ? `<div class="notice">Full track from <a href="${esc(t.link)}" target="_blank" rel="noopener">Audius</a> · uploaded by ${esc(t.user || t.artist)}${t.cc ? " · Creative Commons" : ""}</div>`
         : t && t.own ? `<div class="notice">Full track from your own file${t.file ? ` (${esc(t.file)})` : ""}</div>`
